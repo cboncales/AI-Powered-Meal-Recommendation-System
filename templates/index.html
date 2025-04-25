@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Meal Recommendation System</title>
+  </head>
+  <body>
+    <h1>Meal Recommendation System</h1>
+    <form action="/recommend" method="post">
+      <label for="dietary_needs">Dietary Needs:</label>
+      <input type="text" id="dietary_needs" name="dietary_needs" required />
+      <br />
+      <label for="past_choices">Past Choices (JSON array):</label>
+      <input type="text" id="past_choices" name="past_choices" required />
+      <br />
+      <button type="submit">Get Recommendations</button>
+    </form>
+
+    {% if recommendation %}
+    <h2>Recommended Meal: {{ recommendation }}</h2>
+    {% endif %} {% if error %}
+    <p style="color: red">Error: {{ error }}</p>
+    {% endif %}
+  </body>
+</html>
