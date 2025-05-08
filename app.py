@@ -30,9 +30,12 @@ login_manager.login_view = 'login'
 
 # Define the User model
 class User(UserMixin, db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    __tablename__ = 'users'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     email = db.Column(db.String(100), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
+    first_name = db.Column(db.String(50), nullable=True)
+    last_name = db.Column(db.String(50), nullable=True)
     
     def set_password(self, password):
         self.password = generate_password_hash(password)
@@ -60,26 +63,28 @@ def register():
         email = request.form['email']
         password = request.form['password']
         confirm_password = request.form['confirm_password']
+        first_name = request.form.get('first_name', '')
+        last_name = request.form.get('last_name', '')
         
         # Check if passwords match
         if password != confirm_password:
-            flash('Passwords do not match!')
+            flash('Passwords do not match!', 'error')
             return render_template('register.html')
             
         # Check if user already exists
         existing_user = User.query.filter_by(email=email).first()
         if existing_user:
-            flash('Email already registered!')
+            flash('Email already registered!', 'error')
             return render_template('register.html')
             
         # Create new user
-        new_user = User(email=email)
+        new_user = User(email=email, first_name=first_name, last_name=last_name)
         new_user.set_password(password)
         
         db.session.add(new_user)
         db.session.commit()
         
-        flash('Registration successful! Please login.')
+        flash('Registration successful! Please login.', 'success')
         return redirect(url_for('login'))
         
     return render_template('register.html')
@@ -99,7 +104,7 @@ def login():
             login_user(user)
             return redirect(url_for('dashboard'))
         else:
-            flash('Invalid email or password')
+            flash('Invalid email or password', 'error')
             
     return render_template('login.html')
 
@@ -112,7 +117,22 @@ def logout():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    return render_template('dashboard.html')
+    # Use first name if available, otherwise use email
+    display_name = current_user.first_name if current_user.first_name else current_user.email.split('@')[0]
+    return render_template('dashboard.html', display_name=display_name)
+
+@app.route('/recommend', methods=['GET', 'POST'])
+@login_required
+def recommend():
+    if request.method == 'POST':
+        # Handle form submission (will implement AI recommendations later)
+        cuisine = request.form.get('cuisine', '')
+        dietary = request.form.get('dietary', '')
+        # For now, just return the template with the form
+        return render_template('recommend.html')
+    
+    # For GET requests, just show the recommendation form
+    return render_template('recommend.html')
 
 # @app.route('/recommend', methods=['POST'])
 # @login_required

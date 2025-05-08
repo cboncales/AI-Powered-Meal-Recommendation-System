@@ -20,13 +20,13 @@
         </h1>
         <div class="flex space-x-4">
           <a
-            href="dashboard.html"
+            href="{{ url_for('dashboard') }}"
             class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition"
           >
             Dashboard
           </a>
           <a
-            href="login.html"
+            href="{{ url_for('logout') }}"
             class="flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
           >
             Logout
@@ -42,7 +42,11 @@
           Personalize Your Meals
         </h2>
 
-        <form method="POST" class="space-y-6">
+        <form
+          method="POST"
+          action="{{ url_for('recommend') }}"
+          class="space-y-6"
+        >
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1"
               >Cuisine Preference</label
