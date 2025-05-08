@@ -20,13 +20,13 @@
         </h1>
         <div class="flex space-x-4">
           <a
-            href="{{ url_for('dashboard') }}"
+            href="{{ url_for('main.dashboard') }}"
             class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition"
           >
             Dashboard
           </a>
           <a
-            href="{{ url_for('logout') }}"
+            href="{{ url_for('auth.logout') }}"
             class="flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
           >
             Logout
@@ -44,7 +44,7 @@
 
         <form
           method="POST"
-          action="{{ url_for('recommend') }}"
+          action="{{ url_for('recommend.recommend') }}"
           class="space-y-6"
         >
           <div>
