@@ -1,0 +1,113 @@
+/* Import Google Font */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+/* Body Styles */
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #667eea, #764ba2); /* Gradient background */
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+/* Container for the Registration Form */
+.register-container {
+    max-width: 450px;
+    padding: 2rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    animation: fadeIn 0.8s ease-in-out;
+}
+
+/* Card Header Styling */
+.card-header {
+    background: #47597E;
+    color: white;
+    text-align: center;
+    padding: 1.5rem;
+    font-size: 1.4rem;
+    font-weight: bold;
+    border-radius: 12px 12px 0 0;
+}
+
+/* Input Fields */
+.form-control {
+    padding: 14px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    transition: all 0.3s ease-in-out;
+}
+
+.form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 8px rgba(102, 126, 234, 0.5);
+}
+
+/* Register Button */
+.btn-register {
+    background: #47597E;
+    border: none;
+    padding: 12px;
+    font-size: 16px;
+    font-weight: bold;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+}
+
+.btn-register:hover {
+    background: #5A7FB2;
+    transform: translateY(-2px);
+}
+
+/* Alert Messages */
+.alert {
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+/* Centering the Register Link */
+p {
+    text-align: center;
+    margin-top: 15px;
+}
+
+p a {
+    color: #47597E;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+p a:hover {
+    text-decoration: underline;
+}
+
+.password-wrapper {
+    position: relative;
+}
+.toggle-password {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #6c757d;
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

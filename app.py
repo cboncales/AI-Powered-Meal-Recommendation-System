@@ -1,8 +1,10 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for, flash
 import tensorflow as tf
 import numpy as np
 import joblib
 import json
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -10,9 +12,15 @@ from flask_migrate import Migrate
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:2001@localhost/MealRecoSys'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SECRET_KEY'] = 'your-secret-key-here'  # Change this to a random secret key in production
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+
+# Initialize Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
 
 # Load the trained model and encoders
 model = tf.keras.models.load_model("meal_recommendation_model.h5")
@@ -20,10 +28,22 @@ scaler = joblib.load("scaler.pkl")
 label_encoders = joblib.load("label_encoders.pkl")
 target_encoder = joblib.load("target_encoder.pkl")
 
+# Define the User model
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(100), unique=True, nullable=False)
+    password = db.Column(db.String(200), nullable=False)
+    
+    def set_password(self, password):
+        self.password = generate_password_hash(password)
+        
+    def check_password(self, password):
+        return check_password_hash(self.password, password)
+
 # Define the UserPreferences model
 class UserPreferences(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, unique=True, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     dietary_needs = db.Column(db.String(100))
     favorite_cuisine = db.Column(db.String(100))
     past_choices = db.Column(db.Text)  # Store as JSON string
@@ -35,11 +55,81 @@ class Meal(db.Model):
     category = db.Column(db.String(100))  # e.g., Vegan, Keto
     ingredients = db.Column(db.Text)  # Store as JSON string
 
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
 @app.route('/')
 def index():
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard'))
     return render_template('index.html')
 
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard'))
+        
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        confirm_password = request.form['confirm_password']
+        
+        # Check if passwords match
+        if password != confirm_password:
+            flash('Passwords do not match!')
+            return render_template('register.html')
+            
+        # Check if user already exists
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
+            flash('Email already registered!')
+            return render_template('register.html')
+            
+        # Create new user
+        new_user = User(email=email)
+        new_user.set_password(password)
+        
+        db.session.add(new_user)
+        db.session.commit()
+        
+        flash('Registration successful! Please login.')
+        return redirect(url_for('login'))
+        
+    return render_template('register.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard'))
+        
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        
+        user = User.query.filter_by(email=email).first()
+        
+        if user and user.check_password(password):
+            login_user(user)
+            return redirect(url_for('dashboard'))
+        else:
+            flash('Invalid email or password')
+            
+    return render_template('login.html')
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('index'))
+
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    return render_template('dashboard.html')
+
 @app.route('/recommend', methods=['POST'])
+@login_required
 def recommend():
     try:
         # Get user input from form
@@ -64,10 +154,10 @@ def recommend():
         # Decode prediction back to meal name
         recommended_meal = target_encoder.inverse_transform(predicted_class)[0]
 
-        return render_template('index.html', recommendation=recommended_meal)
+        return render_template('dashboard.html', recommendation=recommended_meal)
 
     except Exception as e:
-        return render_template('index.html', error=str(e))
+        return render_template('dashboard.html', error=str(e))
 
 if __name__ == '__main__':
     app.run(debug=True)

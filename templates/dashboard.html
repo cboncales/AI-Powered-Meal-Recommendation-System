@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BiteBot</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body
+    class="bg-gradient-to-br from-indigo-50 to-blue-100 min-h-screen font-sans"
+  >
+    <div class="container mx-auto px-4 py-8">
+      <!-- Header -->
+      <header class="flex justify-between items-center mb-10">
+        <h1 class="text-4xl font-extrabold text-indigo-700 tracking-tight">
+          🍽️ BiteBot
+        </h1>
+        <div class="flex space-x-4">
+          <a
+            href="recommend.html"
+            class="flex items-center bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition"
+          >
+            Recommend
+          </a>
+          <a
+            href="login.html"
+            class="flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
+          >
+            Logout
+          </a>
+        </div>
+      </header>
+
+      <!-- Welcome Message -->
+      <div
+        class="bg-white rounded-2xl shadow-lg p-6 mb-10 border-l-4 border-indigo-500"
+      >
+        <h2 class="text-2xl font-bold text-gray-800 mb-1">Welcome, John! 👋</h2>
+        <p class="text-gray-600">
+          Let's nourish your day with these personalized meals.
+        </p>
+      </div>
+
+      <!-- Recommendations -->
+      <section class="mb-12">
+        <h2 class="text-2xl font-semibold text-gray-800 mb-4">
+          Recommended For You
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div
+            class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition transform hover:-translate-y-1"
+          >
+            <div
+              class="h-48 bg-blue-100 flex items-center justify-center text-blue-400 text-sm"
+            >
+              Meal Image
+            </div>
+            <div class="p-5">
+              <h3 class="text-xl font-semibold text-gray-800 mb-2">
+                Grilled Salmon
+              </h3>
+              <div class="flex justify-between text-sm text-gray-600 mb-2">
+                <span>Japanese</span>
+                <span>30 mins</span>
+              </div>
+              <span
+                class="inline-block bg-purple-100 text-purple-800 text-xs font-medium px-3 py-1 rounded-full"
+              >
+                High Protein
+              </span>
+            </div>
+          </div>
+          <div
+            class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition transform hover:-translate-y-1"
+          >
+            <div
+              class="h-48 bg-blue-100 flex items-center justify-center text-blue-400 text-sm"
+            >
+              Meal Image
+            </div>
+            <div class="p-5">
+              <h3 class="text-xl font-semibold text-gray-800 mb-2">
+                Quinoa Bowl
+              </h3>
+              <div class="flex justify-between text-sm text-gray-600 mb-2">
+                <span>Mediterranean</span>
+                <span>20 mins</span>
+              </div>
+              <span
+                class="inline-block bg-purple-100 text-purple-800 text-xs font-medium px-3 py-1 rounded-full"
+              >
+                Vegetarian
+              </span>
+            </div>
+          </div>
+          <div
+            class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition transform hover:-translate-y-1"
+          >
+            <div
+              class="h-48 bg-blue-100 flex items-center justify-center text-blue-400 text-sm"
+            >
+              Meal Image
+            </div>
+            <div class="p-5">
+              <h3 class="text-xl font-semibold text-gray-800 mb-2">
+                Chicken Stir-Fry
+              </h3>
+              <div class="flex justify-between text-sm text-gray-600 mb-2">
+                <span>Asian</span>
+                <span>25 mins</span>
+              </div>
+              <span
+                class="inline-block bg-purple-100 text-purple-800 text-xs font-medium px-3 py-1 rounded-full"
+              >
+                Low Carb
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Quick Actions -->
+      <section>
+        <h2 class="text-2xl font-semibold text-gray-800 mb-4">Quick Actions</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <a
+            href="#"
+            class="bg-white rounded-xl shadow p-6 text-center hover:bg-indigo-50 transition"
+          >
+            <h3 class="text-lg font-semibold mb-2 text-indigo-700">
+              🔍 Custom Recommendations
+            </h3>
+            <p class="text-gray-600">Tailored meals just for you.</p>
+          </a>
+          <div
+            class="bg-white rounded-xl shadow p-6 text-center hover:bg-blue-50 transition"
+          >
+            <h3 class="text-lg font-semibold mb-2 text-blue-700">
+              📜 Recent Meals
+            </h3>
+            <p class="text-gray-600">Check what you've tried lately.</p>
+          </div>
+          <div
+            class="bg-white rounded-xl shadow p-6 text-center hover:bg-purple-50 transition"
+          >
+            <h3 class="text-lg font-semibold mb-2 text-purple-700">
+              📅 Meal Planner
+            </h3>
+            <p class="text-gray-600">Organize your meals for the week.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </body>
+</html>
