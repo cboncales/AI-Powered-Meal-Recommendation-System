@@ -34,10 +34,27 @@ class MealRecommendationSystem:
         # Load diet recommendations
         diets_df = pd.read_csv(os.path.join(self.data_path, 'diet_recommendations_dataset.csv'))
         
+        # Load All_Diets dataset
+        all_diets_df = pd.read_csv(os.path.join(self.data_path, 'All_Diets.csv'))
+        
         # Basic data cleaning
         preferences_df = preferences_df.dropna()
         dishes_df = dishes_df.dropna()
         diets_df = diets_df.dropna()
+        all_diets_df = all_diets_df.dropna()
+        
+        # Process All_Diets data to integrate with our model
+        # We'll create a mapping from diet types to dishes
+        diet_types = all_diets_df['Diet_type'].unique()
+        self.diet_type_encoder = LabelEncoder()
+        diet_type_encoded = self.diet_type_encoder.fit_transform(all_diets_df['Diet_type'])
+        all_diets_df['diet_type_encoded'] = diet_type_encoded
+        
+        # Extract cuisine types for later use
+        cuisine_types = all_diets_df['Cuisine_type'].unique()
+        self.cuisine_encoder = LabelEncoder()
+        cuisine_encoded = self.cuisine_encoder.fit_transform(all_diets_df['Cuisine_type'])
+        all_diets_df['cuisine_encoded'] = cuisine_encoded
         
         # Create user-dish interaction matrix
         print("Creating user-dish interactions...")
@@ -48,8 +65,8 @@ class MealRecommendationSystem:
         
         # Create a sample interaction dataset
         # In a real system, this would be actual user ratings/interactions with dishes
-        # For this demo, we'll create synthetic interactions
-        num_interactions = min(10000, len(unique_users) * 10)  # Limit to avoid memory issues
+        # For this demo, we'll create synthetic interactions with diet preferences integrated
+        num_interactions = min(15000, len(unique_users) * 20)  # Increased interactions
         
         user_ids = np.random.choice(unique_users, num_interactions)
         dish_ids = np.random.choice(unique_dishes, num_interactions)
@@ -64,9 +81,63 @@ class MealRecommendationSystem:
             'rating': ratings
         })
         
+        # Enhance interactions with diet information based on user preferences
+        # Map users to preferred diets using food and dessert preferences
+        diet_mapping = {
+            'Traditional food': ['paleo', 'mediterranean', 'keto'],
+            'Western Food': ['vegan', 'vegetarian', 'gluten-free']
+        }
+        
+        # Add diet type to user profiles using preferences
+        user_diet_prefs = {}
+        for _, row in preferences_df.iterrows():
+            user_id = row['Participant_ID']
+            food_pref = row['Food']
+            dessert_pref = row['Dessert']
+            
+            # Assign diet types based on preferences
+            if food_pref in diet_mapping:
+                # Select a diet type based on food preference
+                possible_diets = diet_mapping[food_pref]
+                # Use dessert preference to further narrow down diet
+                if dessert_pref == 'Yes':
+                    diet_idx = 0  # More permissive diet
+                elif dessert_pref == 'No':
+                    diet_idx = len(possible_diets) - 1  # More restrictive diet
+                else:  # 'Maybe'
+                    diet_idx = np.random.randint(0, len(possible_diets))
+                
+                user_diet_prefs[user_id] = possible_diets[diet_idx]
+            else:
+                # Default to random diet type
+                user_diet_prefs[user_id] = np.random.choice(diet_types)
+        
+        # Add diet type to interactions
+        diet_types_list = []
+        cuisine_types_list = []
+        
+        for _, row in interactions_df.iterrows():
+            user_id = row['user_id']
+            
+            # Get user's diet preference
+            user_diet = user_diet_prefs.get(user_id, np.random.choice(diet_types))
+            diet_types_list.append(user_diet)
+            
+            # Assign a cuisine type based on the diet
+            diet_cuisines = all_diets_df[all_diets_df['Diet_type'] == user_diet]['Cuisine_type'].unique()
+            if len(diet_cuisines) > 0:
+                cuisine = np.random.choice(diet_cuisines)
+            else:
+                cuisine = np.random.choice(cuisine_types)
+            cuisine_types_list.append(cuisine)
+        
+        interactions_df['diet_type'] = diet_types_list
+        interactions_df['cuisine_type'] = cuisine_types_list
+        
         # Encode categorical features
         interactions_df['user_id_encoded'] = self.user_encoder.fit_transform(interactions_df['user_id'])
         interactions_df['dish_id_encoded'] = self.dish_encoder.fit_transform(interactions_df['dish_id'])
+        interactions_df['diet_type_encoded'] = self.diet_type_encoder.fit_transform(interactions_df['diet_type'])
         
         # Get dish features to enrich the model
         dish_features = dishes_df.copy()
@@ -93,6 +164,24 @@ class MealRecommendationSystem:
             how='inner'
         )
         
+        # Add nutritional preferences from All_Diets to enhance our model
+        nutrition_preferences = {}
+        for diet_type in diet_types:
+            # Get average nutritional values for each diet type
+            diet_data = all_diets_df[all_diets_df['Diet_type'] == diet_type]
+            avg_protein = diet_data['Protein(g)'].mean()
+            avg_carbs = diet_data['Carbs(g)'].mean()
+            avg_fat = diet_data['Fat(g)'].mean()
+            
+            nutrition_preferences[diet_type] = {
+                'protein': avg_protein,
+                'carbs': avg_carbs,
+                'fat': avg_fat
+            }
+        
+        # Store for later use
+        self.nutrition_preferences = nutrition_preferences
+        
         # Split data
         self.train_df, self.test_df = train_test_split(merged_df, test_size=0.2, random_state=42)
         
@@ -106,6 +195,7 @@ class MealRecommendationSystem:
         # Number of unique users and dishes
         n_users = len(self.user_encoder.classes_)
         n_dishes = len(self.dish_encoder.classes_)
+        n_diets = len(self.diet_type_encoder.classes_)
         
         # User input and embedding
         user_input = Input(shape=(1,), name='user_input')
@@ -117,11 +207,16 @@ class MealRecommendationSystem:
         dish_embedding = Embedding(n_dishes, embedding_dim, name='dish_embedding')(dish_input)
         dish_vec = Flatten(name='dish_flatten')(dish_embedding)
         
+        # Diet type input and embedding
+        diet_input = Input(shape=(1,), name='diet_input')
+        diet_embedding = Embedding(n_diets, embedding_dim // 2, name='diet_embedding')(diet_input)
+        diet_vec = Flatten(name='diet_flatten')(diet_embedding)
+        
         # Nutritional features input
         nutrition_input = Input(shape=(4,), name='nutrition_input')  # 4 nutritional features
         
         # Combine embeddings and features
-        concat = Concatenate()([user_vec, dish_vec, nutrition_input])
+        concat = Concatenate()([user_vec, dish_vec, diet_vec, nutrition_input])
         
         # Dense layers
         dense1 = Dense(128, activation='relu')(concat)
@@ -135,7 +230,7 @@ class MealRecommendationSystem:
         
         # Create model
         model = Model(
-            inputs=[user_input, dish_input, nutrition_input],
+            inputs=[user_input, dish_input, diet_input, nutrition_input],
             outputs=output
         )
         
@@ -158,10 +253,12 @@ class MealRecommendationSystem:
         # Prepare inputs
         user_train = self.train_df['user_id_encoded'].values
         dish_train = self.train_df['dish_id_encoded'].values
+        diet_train = self.train_df['diet_type_encoded'].values
         nutrition_train = self.train_df[['Calories', 'Protein', 'Fats', 'Carbs']].values
         
         user_test = self.test_df['user_id_encoded'].values
         dish_test = self.test_df['dish_id_encoded'].values
+        diet_test = self.test_df['diet_type_encoded'].values
         nutrition_test = self.test_df[['Calories', 'Protein', 'Fats', 'Carbs']].values
         
         # Target values
@@ -170,11 +267,11 @@ class MealRecommendationSystem:
         
         # Train the model
         history = self.model.fit(
-            [user_train, dish_train, nutrition_train],
+            [user_train, dish_train, diet_train, nutrition_train],
             y_train,
             epochs=epochs,
             batch_size=batch_size,
-            validation_data=([user_test, dish_test, nutrition_test], y_test),
+            validation_data=([user_test, dish_test, diet_test, nutrition_test], y_test),
             verbose=1
         )
         
@@ -206,7 +303,7 @@ class MealRecommendationSystem:
         
         return history
     
-    def recommend_meals(self, user_id, top_n=5):
+    def recommend_meals(self, user_id, top_n=5, diet_type=None):
         """Generate meal recommendations for a user"""
         if self.model is None:
             raise ValueError("Model not trained. Train the model first.")
@@ -217,11 +314,30 @@ class MealRecommendationSystem:
         except:
             print(f"User {user_id} not found in training data.")
             return []
-            
+        
         # Get all dishes
         dish_indices = np.arange(len(self.dish_encoder.classes_))
         dishes = self.dish_encoder.inverse_transform(dish_indices)
         
+        # Get diet type
+        if diet_type is None:
+            # Try to find a diet type from user's training data
+            if user_id in self.train_df['user_id'].values:
+                user_diets = self.train_df[self.train_df['user_id'] == user_id]['diet_type'].value_counts()
+                if not user_diets.empty:
+                    diet_type = user_diets.index[0]
+                else:
+                    diet_type = 'paleo'  # Default to paleo if no preference found
+            else:
+                diet_type = 'paleo'  # Default to paleo if user not in training data
+        
+        try:
+            diet_idx = self.diet_type_encoder.transform([diet_type])[0]
+        except:
+            # If diet type not found, default to first diet type
+            diet_type = self.diet_type_encoder.classes_[0]
+            diet_idx = 0
+            
         # Load dish features
         dishes_df = pd.read_csv(os.path.join(self.data_path, 'nutritionverse_dish_metadata3.csv'))
         dish_features = dishes_df.copy()
@@ -237,6 +353,7 @@ class MealRecommendationSystem:
         # Create prediction input
         user_input = np.array([user_idx] * len(dishes))
         dish_input = dish_indices
+        diet_input = np.array([diet_idx] * len(dishes))
         
         # Get nutritional data for all dishes
         nutrition_input = []
@@ -253,16 +370,16 @@ class MealRecommendationSystem:
         nutrition_input = self.scaler.transform(nutrition_input)
         
         # Predict ratings
-        predictions = self.model.predict([user_input, dish_input, nutrition_input], verbose=0).flatten()
+        predictions = self.model.predict([user_input, dish_input, diet_input, nutrition_input], verbose=0).flatten()
         
         # Get top N recommendations
         dish_indices = np.argsort(-predictions)[:top_n]
         recommended_dishes = dishes[dish_indices]
         predicted_ratings = predictions[dish_indices]
         
-        # Return recommendations
+        # Add the diet type to recommendations
         recommendations = [
-            {"dish_id": dish, "predicted_rating": rating}
+            {"dish_id": dish, "predicted_rating": rating, "diet_type": diet_type}
             for dish, rating in zip(recommended_dishes, predicted_ratings)
         ]
         
@@ -287,4 +404,4 @@ if __name__ == "__main__":
     
     print(f"\nTop 5 meal recommendations for user {sample_user}:")
     for i, rec in enumerate(recommendations):
-        print(f"{i+1}. Dish ID: {rec['dish_id']}, Predicted Rating: {rec['predicted_rating']:.2f}") 
+        print(f"{i+1}. Dish ID: {rec['dish_id']}, Predicted Rating: {rec['predicted_rating']:.2f}, Diet Type: {rec['diet_type']}") 

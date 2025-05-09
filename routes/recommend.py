@@ -9,10 +9,21 @@ from models.meal_recommendation_model import MealRecommendationSystem
 # Create a Blueprint for recommendation routes
 recommend_bp = Blueprint('recommend', __name__)
 
+# Get available diet types from All_Diets.csv
+def get_available_diet_types():
+    all_diets_path = 'datasets/All_Diets.csv'
+    if os.path.exists(all_diets_path):
+        all_diets_df = pd.read_csv(all_diets_path)
+        return all_diets_df['Diet_type'].unique().tolist()
+    return ['paleo', 'keto', 'vegan', 'vegetarian']  # Defaults if file not found
+
 @recommend_bp.route('/recommend', methods=['GET', 'POST'])
 @login_required
 def recommend():
     recommendations = []
+    
+    # Get available diet types for the form
+    available_diet_types = get_available_diet_types()
     
     if request.method == 'POST':
         # Get form data
@@ -22,6 +33,7 @@ def recommend():
         min_protein = request.form.get('min_protein', 0)
         food_preference = request.form.get('food_preference', 'any')
         beverage = request.form.get('beverage', 'any')
+        diet_type = request.form.get('diet_type', None)
         
         try:
             # Convert string values to appropriate types
@@ -68,17 +80,118 @@ def recommend():
                 user_index = hash(current_user.id) % len(participant_ids)
                 user_id = participant_ids[user_index]
                 
-                # Get recommendations
-                model_recommendations = recommender.recommend_meals(user_id, top_n=6)
+                # Get recommendations with specific diet type if selected
+                model_recommendations = recommender.recommend_meals(user_id, top_n=6, diet_type=diet_type)
                 
                 # Get dish details
                 dishes_df = pd.read_csv('datasets/nutritionverse_dish_metadata3.csv')
+                
+                # Load All_Diets data for recipe names and cuisine types
+                all_diets_df = pd.read_csv('datasets/All_Diets.csv')
+                
+                # Map cuisines to more descriptive names
+                cuisine_display_map = {
+                    'italian': 'Italian',
+                    'mexican': 'Mexican',
+                    'indian': 'Indian',
+                    'chinese': 'Chinese',
+                    'american': 'American',
+                    'french': 'French',
+                    'mediterranean': 'Mediterranean',
+                    'japanese': 'Japanese',
+                    'thai': 'Thai',
+                    'greek': 'Greek',
+                    'spanish': 'Spanish',
+                    'korean': 'Korean',
+                    'vietnamese': 'Vietnamese',
+                    'middle eastern': 'Middle Eastern',
+                    'filipino': 'Filipino'
+                }
+                
+                # Generate descriptive recipe names based on diet type and cuisine
+                def generate_recipe_name(diet_type, cuisine, protein, carbs, dish_id):
+                    # Get real recipe names from All_Diets if available
+                    matching_recipes = all_diets_df[(all_diets_df['Diet_type'] == diet_type) & 
+                                                    (all_diets_df['Cuisine_type'].str.lower() == cuisine.lower())]
+                    
+                    if not matching_recipes.empty:
+                        # Return a real recipe name
+                        return matching_recipes.iloc[dish_id % len(matching_recipes)]['Recipe_name']
+                    
+                    # Fallback to generated names
+                    protein_ingredients = {
+                        'high': ['Chicken', 'Beef', 'Salmon', 'Tuna', 'Turkey', 'Shrimp', 'Eggs'],
+                        'medium': ['Tofu', 'Beans', 'Lentils', 'Quinoa', 'Tempeh'],
+                        'low': ['Vegetables', 'Spinach', 'Broccoli', 'Mushrooms']
+                    }
+                    
+                    carb_ingredients = {
+                        'low': ['Cauliflower Rice', 'Zucchini Noodles', 'Lettuce Wraps', 'Cabbage'],
+                        'medium': ['Brown Rice', 'Quinoa', 'Sweet Potato', 'Whole Grain'],
+                        'high': ['Rice', 'Pasta', 'Bread', 'Potatoes', 'Noodles']
+                    }
+                    
+                    cooking_methods = {
+                        'keto': ['Grilled', 'Pan-Fried', 'Roasted', 'Baked'],
+                        'paleo': ['Grilled', 'Roasted', 'Slow-Cooked', 'Baked'],
+                        'vegan': ['Stir-Fried', 'Roasted', 'Steamed', 'Sautéed'],
+                        'vegetarian': ['Baked', 'Stir-Fried', 'Sautéed', 'Grilled'],
+                        'gluten-free': ['Baked', 'Grilled', 'Poached', 'Steamed'],
+                        'mediterranean': ['Grilled', 'Baked', 'Sautéed', 'Roasted']
+                    }
+                    
+                    # Default cooking methods if diet type not in the list
+                    default_methods = ['Prepared', 'Cooked', 'Homemade', 'Traditional']
+                    
+                    # Determine protein level
+                    protein_level = 'high' if protein > 30 else 'medium' if protein > 15 else 'low'
+                    
+                    # Determine carb level
+                    carb_level = 'low' if carbs < 15 else 'medium' if carbs < 30 else 'high'
+                    
+                    # Select appropriate protein ingredient
+                    protein_ingredient = np.random.choice(protein_ingredients[protein_level])
+                    
+                    # Select appropriate carb ingredient
+                    carb_ingredient = np.random.choice(carb_ingredients[carb_level])
+                    
+                    # Select cooking method
+                    methods = cooking_methods.get(diet_type.lower(), default_methods)
+                    cooking_method = np.random.choice(methods)
+                    
+                    # Create cuisine-specific dish names
+                    cuisine_dishes = {
+                        'italian': [f"{cooking_method} {protein_ingredient} with {carb_ingredient}",
+                                   f"{protein_ingredient} {carb_ingredient} {cuisine}",
+                                   f"{cuisine} {protein_ingredient} with {carb_ingredient}"],
+                        'mexican': [f"{protein_ingredient} {cuisine} Bowl with {carb_ingredient}",
+                                   f"{cuisine} {protein_ingredient} Tacos",
+                                   f"{protein_ingredient} {cuisine} Salad"],
+                        'indian': [f"{cuisine} {protein_ingredient} Curry with {carb_ingredient}",
+                                  f"{protein_ingredient} {cuisine} Masala",
+                                  f"{cuisine} Spiced {protein_ingredient}"],
+                        'chinese': [f"{cuisine} {protein_ingredient} Stir-Fry with {carb_ingredient}",
+                                   f"{protein_ingredient} {cuisine} Bowl",
+                                   f"{cuisine}-Style {protein_ingredient}"],
+                        'filipino': [f"{cooking_method} {protein_ingredient} Adobo with {carb_ingredient}",
+                                    f"Filipino {protein_ingredient} Sinigang",
+                                    f"{protein_ingredient} Kare-Kare with {carb_ingredient}"]
+                    }
+                    
+                    # Get dish names for the cuisine
+                    dishes = cuisine_dishes.get(cuisine.lower(), [f"{cooking_method} {protein_ingredient} with {carb_ingredient}",
+                                                                f"{cuisine} {protein_ingredient}",
+                                                                f"{protein_ingredient} {cuisine} Style"])
+                    
+                    # Return a dish name
+                    return dishes[dish_id % len(dishes)]
                 
                 # Filter based on cuisine and dietary preferences if specified
                 filtered_recommendations = []
                 for rec in model_recommendations:
                     dish_id = rec['dish_id']
                     rating = rec['predicted_rating']
+                    rec_diet_type = rec['diet_type']
                     
                     try:
                         # Get dish details
@@ -98,11 +211,8 @@ def recommend():
                         if protein < min_protein:
                             continue
                         
-                        # Add to recommendations list
-                        dish_name = dish_info.get('name', f'Dish {dish_id}')
-                        
                         # Simple mapping for cuisine and diet type (in a real app, these would be in the dataset)
-                        cuisines = ['Italian', 'Mexican', 'Indian', 'Chinese']
+                        cuisines = ['italian', 'mexican', 'indian', 'chinese', 'filipino', 'american', 'french', 'thai']
                         dish_cuisine = cuisines[hash(dish_id) % len(cuisines)]
                         
                         diet_types = ['Regular', 'Vegetarian', 'Vegan', 'Gluten-free']
@@ -116,17 +226,21 @@ def recommend():
                         if dietary != 'none' and dietary.lower() != dish_diet.lower():
                             continue
                         
+                        # Generate a descriptive recipe name
+                        recipe_name = generate_recipe_name(rec_diet_type, dish_cuisine, protein, carbs, dish_id)
+                        
                         # Add to filtered recommendations
                         filtered_recommendations.append({
                             'dish_id': dish_id,
-                            'name': dish_name,
+                            'name': recipe_name,
                             'rating': rating,
                             'calories': calories,
                             'protein': protein,
                             'fats': fats,
                             'carbs': carbs,
-                            'cuisine': dish_cuisine,
+                            'cuisine': cuisine_display_map.get(dish_cuisine.lower(), dish_cuisine.capitalize()),
                             'diet_type': dish_diet,
+                            'model_diet_type': rec_diet_type,
                             'cook_time': f"{int(20 + dish_id % 40)} mins"
                         })
                     except Exception as e:
@@ -148,11 +262,15 @@ def recommend():
         'max_calories': request.form.get('max_calories', '800'),
         'min_protein': request.form.get('min_protein', '30'),
         'food_preference': request.form.get('food_preference', 'any'),
-        'beverage': request.form.get('beverage', 'any')
+        'beverage': request.form.get('beverage', 'any'),
+        'diet_type': request.form.get('diet_type', '')
     }
     
     # Render template with recommendations
-    return render_template('recommend.html', recommendations=recommendations, form_data=form_data)
+    return render_template('recommend.html', 
+                          recommendations=recommendations, 
+                          form_data=form_data, 
+                          available_diet_types=available_diet_types)
 
 # Future AI recommendation functionality can be added here
 # @recommend_bp.route('/ai-recommend', methods=['POST'])
