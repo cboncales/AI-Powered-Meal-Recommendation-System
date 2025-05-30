@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Get Recommendations</title>
+    <title>Personalized Meal Recommendations</title>
     <link
       href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
       rel="stylesheet"
@@ -12,11 +12,11 @@
   <body
     class="bg-gradient-to-br from-indigo-50 to-blue-100 min-h-screen font-sans"
   >
-    <div class="container mx-auto px-4 py-10">
+    <div class="container mx-auto px-4 py-8">
       <!-- Header -->
-      <header class="flex justify-between items-center mb-10">
-        <h1 class="text-3xl font-extrabold text-indigo-700 tracking-tight">
-          Get Meal Recommendations
+      <header class="flex justify-between items-center mb-8">
+        <h1 class="text-4xl font-extrabold text-indigo-700 tracking-tight">
+          🥗 Personalized Meal Recommendations
         </h1>
         <div class="flex space-x-4">
           <a
@@ -35,9 +35,10 @@
       </header>
 
       <!-- Flash messages -->
-      {% with messages = get_flashed_messages(with_categories=true) %} {% if
-      messages %} {% for category, message in messages %} {% if category ==
-      'error' %}
+      {% with messages = get_flashed_messages(with_categories=true) %} 
+      {% if messages %} 
+        {% for category, message in messages %} 
+          {% if category == 'error' %}
       <div
         class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
         role="alert"
@@ -46,139 +47,145 @@
       </div>
       {% else %}
       <div
-        class="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded relative mb-4"
+            class="bg-indigo-100 border border-indigo-400 text-indigo-700 px-4 py-3 rounded relative mb-4"
         role="alert"
       >
         <span class="block sm:inline">{{ message }}</span>
       </div>
-      {% endif %} {% endfor %} {% endif %} {% endwith %}
+          {% endif %} 
+        {% endfor %} 
+      {% endif %} 
+      {% endwith %}
 
-      <!-- Form Card -->
-      <div
-        class="bg-white rounded-2xl shadow-lg p-6 mb-12 border-l-4 border-indigo-500"
-      >
-        <h2 class="text-2xl font-semibold text-gray-800 mb-4">
-          Personalize Your Meal Recommendations
+      <!-- Simplified Form Card -->
+      <div class="bg-white rounded-2xl shadow-lg p-8 mb-12 border-l-4 border-indigo-500">
+        <h2 class="text-3xl font-semibold text-gray-800 mb-6 flex items-center">
+          <span class="mr-3">📝</span>
+          Get Your Personalized Recommendations
         </h2>
+        <p class="text-gray-600 mb-6">
+          Tell us a bit about yourself to get personalized meal recommendations.
+        </p>
 
         <form
           method="POST"
           action="{{ url_for('recommend.recommend') }}"
           class="space-y-6"
         >
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Cuisine Preference</label
-            >
-            <select
-              name="cuisine"
-              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              <option value="" {% if form_data and form_data.cuisine == '' %}selected{% endif %}>Any Cuisine</option>
-              <option value="italian" {% if form_data and form_data.cuisine == 'italian' %}selected{% endif %}>Italian</option>
-              <option value="mexican" {% if form_data and form_data.cuisine == 'mexican' %}selected{% endif %}>Mexican</option>
-              <option value="indian" {% if form_data and form_data.cuisine == 'indian' %}selected{% endif %}>Indian</option>
-              <option value="chinese" {% if form_data and form_data.cuisine == 'chinese' %}selected{% endif %}>Chinese</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Dietary Restrictions</label
-            >
-            <select
-              name="dietary"
-              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              <option value="none" {% if form_data and form_data.dietary == 'none' %}selected{% endif %}>None</option>
-              <option value="vegetarian" {% if form_data and form_data.dietary == 'vegetarian' %}selected{% endif %}>Vegetarian</option>
-              <option value="vegan" {% if form_data and form_data.dietary == 'vegan' %}selected{% endif %}>Vegan</option>
-              <option value="gluten-free" {% if form_data and form_data.dietary == 'gluten-free' %}selected{% endif %}>Gluten-free</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Nutritional Preference</label
-            >
-            <div class="grid grid-cols-2 gap-4">
+          <!-- Basic Information -->
+          <div class="bg-indigo-50 p-6 rounded-lg border border-indigo-200">
+            <h3 class="text-xl font-semibold text-indigo-800 mb-4 flex items-center">
+              <span class="mr-2">👤</span>
+              Basic Information
+            </h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label class="block text-xs text-gray-600 mb-1"
-                  >Max Calories</label
-                >
+                <label class="block text-sm font-medium text-gray-700 mb-1">Age</label>
                 <input
                   type="number"
-                  name="max_calories"
-                  min="0"
-                  max="2000"
-                  step="100"
-                  value="{{ form_data.max_calories if form_data else '800' }}"
-                  class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  name="age"
+                  min="16"
+                  max="100"
+                  value="{{ form_data.age if form_data else '30' }}"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  required
                 />
               </div>
+              
               <div>
-                <label class="block text-xs text-gray-600 mb-1"
-                  >Min Protein (g)</label
+                <label class="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+                <select
+                  name="gender"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  required
                 >
-                <input
-                  type="number"
-                  name="min_protein"
-                  min="0"
-                  max="200"
-                  step="5"
-                  value="{{ form_data.min_protein if form_data else '30' }}"
-                  class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
+                  <option value="Male" {% if form_data and form_data.gender == 'Male' %}selected{% endif %}>Male</option>
+                  <option value="Female" {% if form_data and form_data.gender == 'Female' %}selected{% endif %}>Female</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Activity Level</label>
+                <select
+                  name="activity_level"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  required
+                >
+                  <option value="Sedentary" {% if form_data and form_data.activity_level == 'Sedentary' %}selected{% endif %}>Low Activity</option>
+                  <option value="Moderately Active" {% if form_data and form_data.activity_level == 'Moderately Active' %}selected{% endif %}>Moderate Activity</option>
+                  <option value="Very Active" {% if form_data and form_data.activity_level == 'Very Active' %}selected{% endif %}>High Activity</option>
+                </select>
               </div>
             </div>
           </div>
 
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Food Preference</label
-            >
-            <select
-              name="food_preference"
-              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              <option value="any" {% if form_data and form_data.food_preference == 'any' %}selected{% endif %}>Any</option>
-              <option value="traditional" {% if form_data and form_data.food_preference == 'traditional' %}selected{% endif %}>Traditional Food</option>
-              <option value="western" {% if form_data and form_data.food_preference == 'western' %}selected{% endif %}>Western Food</option>
-            </select>
+          <!-- Dietary Preferences -->
+          <div class="bg-blue-50 p-6 rounded-lg border border-blue-200">
+            <h3 class="text-xl font-semibold text-blue-800 mb-4 flex items-center">
+              <span class="mr-2">🥬</span>
+              Dietary Preferences
+            </h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Diet Type</label>
+                <select
+                  name="dietary_preference"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                >
+                  <option value="Omnivore" {% if form_data and form_data.dietary_preference == 'Omnivore' %}selected{% endif %}>Everything (Omnivore)</option>
+                  <option value="Vegetarian" {% if form_data and form_data.dietary_preference == 'Vegetarian' %}selected{% endif %}>Vegetarian</option>
+                  <option value="Vegan" {% if form_data and form_data.dietary_preference == 'Vegan' %}selected{% endif %}>Vegan</option>
+                  <option value="Keto" {% if form_data and form_data.dietary_preference == 'Keto' %}selected{% endif %}>Keto</option>
+                </select>
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Preferred Cuisine</label>
+                <select
+                  name="preferred_cuisine"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="International" {% if form_data and form_data.preferred_cuisine == 'International' %}selected{% endif %}>Any Cuisine</option>
+                  <option value="American" {% if form_data and form_data.preferred_cuisine == 'American' %}selected{% endif %}>American</option>
+                  <option value="Italian" {% if form_data and form_data.preferred_cuisine == 'Italian' %}selected{% endif %}>Italian</option>
+                  <option value="Mexican" {% if form_data and form_data.preferred_cuisine == 'Mexican' %}selected{% endif %}>Mexican</option>
+                  <option value="Chinese" {% if form_data and form_data.preferred_cuisine == 'Chinese' %}selected{% endif %}>Chinese</option>
+                </select>
+              </div>
+            </div>
           </div>
 
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Beverage Preference</label
-            >
-            <select
-              name="beverage"
-              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              <option value="any" {% if form_data and form_data.beverage == 'any' %}selected{% endif %}>Any</option>
-              <option value="fresh" {% if form_data and form_data.beverage == 'fresh' %}selected{% endif %}>Fresh Juice</option>
-              <option value="carbonated" {% if form_data and form_data.beverage == 'carbonated' %}selected{% endif %}>Carbonated Drinks</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Diet Type</label>
-            <select
-              name="diet_type"
-              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              <option value="">Any Diet</option>
-              {% for diet_type in available_diet_types %}
-              <option value="{{ diet_type }}" {% if form_data and form_data.diet_type == diet_type %}selected{% endif %}>{{ diet_type|title }}</option>
-              {% endfor %}
-            </select>
+          <!-- Simple Goals -->
+          <div class="bg-purple-50 p-6 rounded-lg border border-purple-200">
+            <h3 class="text-xl font-semibold text-purple-800 mb-4 flex items-center">
+              <span class="mr-2">🎯</span>
+              Health Goals
+            </h3>
+            
+            <div class="grid grid-cols-1 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Health Goal</label>
+                <select
+                  name="health_condition"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="None" {% if form_data and form_data.health_condition == 'None' %}selected{% endif %}>Maintain Health</option>
+                  <option value="Weight Loss" {% if form_data and form_data.health_condition == 'Weight Loss' %}selected{% endif %}>Weight Loss</option>
+                  <option value="Weight Gain" {% if form_data and form_data.health_condition == 'Weight Gain' %}selected{% endif %}>Weight Gain</option>
+                  <option value="Diabetes" {% if form_data and form_data.health_condition == 'Diabetes' %}selected{% endif %}>Manage Diabetes</option>
+                </select>
+              </div>
+            </div>
           </div>
 
           <button
             type="submit"
-            class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition"
+            class="w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white py-4 px-6 rounded-lg hover:from-indigo-700 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition text-lg font-semibold"
           >
-            🍽️ Generate AI Recommendations
+            🤖 Get My Personalized Recommendations
           </button>
         </form>
       </div>
@@ -186,98 +193,103 @@
       <!-- Recommendations Section -->
       {% if recommendations %}
       <section>
-        <h2 class="text-2xl font-semibold text-gray-800 mb-4">
-          Your AI-Generated Recommendations
+        <h2 class="text-3xl font-semibold text-gray-800 mb-6 flex items-center">
+          <span class="mr-3">🍽️</span>
+          Your Personalized Meal Recommendations
         </h2>
 
-        <!-- User Preferences Summary -->
-        <div class="bg-indigo-50 rounded-lg p-4 mb-6 border border-indigo-100">
-          <h3 class="font-semibold text-indigo-800 mb-2">Your Preferences:</h3>
-          <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
-            {% if form_data.diet_type %}
-            <div>
-              <span class="text-sm text-indigo-600 font-medium">Diet:</span>
-              <span class="block text-gray-800">{{ form_data.diet_type|title }}</span>
+        <!-- Health Insights Card -->
+        {% if health_insights %}
+        <div class="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-lg p-6 mb-6 border border-indigo-200">
+          <h3 class="font-semibold text-indigo-800 mb-4 flex items-center">
+            <span class="mr-2">📊</span>
+            Your Health Profile Summary
+          </h3>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="text-center">
+              <span class="text-sm text-indigo-600 font-medium">Health Goal</span>
+              <span class="block text-lg font-bold text-gray-800">{{ health_insights.health_conditions }}</span>
             </div>
-            {% endif %}
-            
-            {% if form_data.cuisine and form_data.cuisine != '' %}
-            <div>
-              <span class="text-sm text-indigo-600 font-medium">Cuisine:</span>
-              <span class="block text-gray-800">{{ form_data.cuisine|title }}</span>
+            <div class="text-center">
+              <span class="text-sm text-indigo-600 font-medium">Diet Type</span>
+              <span class="block text-lg font-bold text-gray-800">{{ health_insights.dietary_preference }}</span>
             </div>
-            {% endif %}
-            
-            <div>
-              <span class="text-sm text-indigo-600 font-medium">Protein Goal:</span>
-              <span class="block text-gray-800">{{ form_data.min_protein }}g+</span>
+            <div class="text-center">
+              <span class="text-sm text-indigo-600 font-medium">Activity Level</span>
+              <span class="block text-lg font-bold text-gray-800">{{ health_insights.activity_level }}</span>
             </div>
-            
-            <div>
-              <span class="text-sm text-indigo-600 font-medium">Max Calories:</span>
-              <span class="block text-gray-800">{{ form_data.max_calories }}cal</span>
+            <div class="text-center">
+              <span class="text-sm text-indigo-600 font-medium">Daily Calories</span>
+              <span class="block text-lg font-bold text-gray-800">{{ health_insights.calorie_recommendation }}</span>
             </div>
           </div>
         </div>
+        {% endif %}
 
-        <!-- Meal Recommendations -->
-        <div class="space-y-4">
+        <!-- Meal Recommendations Grid -->
+        <div class="grid gap-6">
           {% for meal in recommendations %}
-          <div class="bg-white rounded-xl shadow hover:shadow-lg transition p-5 border-l-4 border-indigo-500">
-            <div class="flex flex-wrap md:flex-nowrap">
-              <!-- Meal icon and details -->
-              <div class="w-full md:w-3/4">
-                <div class="flex items-start">
-                  <span class="text-3xl mr-3">🍽️</span>
-                  <div>
-                    <h3 class="text-xl font-semibold text-gray-800">
-                      "{{ meal.name }}"
+          <div class="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border-l-4 border-indigo-500">
+            <div class="flex flex-wrap lg:flex-nowrap">
+              <!-- Left side: Meal details -->
+              <div class="w-full lg:w-3/4 lg:pr-6">
+                <div class="flex items-start mb-4">
+                  <span class="text-4xl mr-4">🍽️</span>
+                  <div class="flex-1">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-2">
+                      {{ meal.name }}
                     </h3>
-                    <div class="flex flex-wrap text-sm text-gray-600 mt-1 gap-x-4">
-                      <span class="flex items-center">
-                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 1v2m0 18v2M4 4l2 2m12 12l2 2M2 12h2m16 0h2M6 6l-2 2m12 12l2 2M16 6l-2 2m-6 0L6 6m8 8l2 2m-6 0l-2 2" />
-                        </svg>
-                        {{ meal.cuisine }}
+                    <div class="flex flex-wrap text-sm text-gray-600 gap-4">
+                      <span class="flex items-center bg-gray-100 px-3 py-1 rounded-full">
+                        🏷️ {{ meal.cuisine|title }}
                       </span>
-                      <span class="flex items-center">
-                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        {{ meal.cook_time }}
-                      </span>
-                      <span class="flex items-center">
-                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
-                        For: {{ meal.model_diet_type|title }} Diet
+                      <span class="flex items-center bg-gray-100 px-3 py-1 rounded-full">
+                        🥗 {{ meal.diet_type|title }} Diet
                       </span>
                     </div>
                   </div>
                 </div>
                 
-                <!-- Nutritional info pills -->
-                <div class="flex flex-wrap gap-2 mt-4">
-                  <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                    {{ "%.0f"|format(meal.protein) }}g protein
-                  </span>
-                  <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                    {{ "%.0f"|format(meal.carbs) }}g carbs
-                  </span>
-                  <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
-                    {{ "%.0f"|format(meal.fats) }}g fat
-                  </span>
-                  <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
-                    {{ "%.0f"|format(meal.calories) }} calories
-                  </span>
+                <!-- Nutritional Information -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                  <div class="bg-indigo-100 p-3 rounded-lg text-center">
+                    <div class="text-lg font-bold text-indigo-800">{{ "%.0f"|format(meal.calories) }}</div>
+                    <div class="text-sm text-indigo-600">Calories</div>
+                  </div>
+                  <div class="bg-blue-100 p-3 rounded-lg text-center">
+                    <div class="text-lg font-bold text-blue-800">{{ "%.1f"|format(meal.protein) }}g</div>
+                    <div class="text-sm text-blue-600">Protein</div>
+                  </div>
+                  <div class="bg-purple-100 p-3 rounded-lg text-center">
+                    <div class="text-lg font-bold text-purple-800">{{ "%.1f"|format(meal.carbs) }}g</div>
+                    <div class="text-sm text-purple-600">Carbs</div>
+                  </div>
+                  <div class="bg-pink-100 p-3 rounded-lg text-center">
+                    <div class="text-lg font-bold text-pink-800">{{ "%.1f"|format(meal.fat) }}g</div>
+                    <div class="text-sm text-pink-600">Fat</div>
+                  </div>
                 </div>
               </div>
               
-              <!-- Rating section -->
-              <div class="w-full md:w-1/4 mt-4 md:mt-0 md:border-l md:pl-4 flex flex-col items-center justify-center">
+              <!-- Right side: Rating and compatibility -->
+              <div class="w-full lg:w-1/4 lg:border-l lg:pl-6 mt-6 lg:mt-0 flex flex-col justify-center">
+                <div class="text-center mb-4">
+                  <div class="text-4xl font-bold text-indigo-600">{{ "%.1f"|format(meal.predicted_rating) }}</div>
+                  <div class="text-sm text-gray-500">AI Rating</div>
+                  <div class="flex justify-center mt-2">
+                    {% for i in range(5) %}
+                      {% if i < (meal.predicted_rating|round|int) %}
+                        <span class="text-yellow-400 text-lg">★</span>
+                      {% else %}
+                        <span class="text-gray-300 text-lg">★</span>
+                      {% endif %}
+                    {% endfor %}
+                  </div>
+                </div>
+                
                 <div class="text-center">
-                  <div class="text-2xl font-bold text-indigo-600">{{ "%.1f"|format(meal.rating) }}</div>
-                  <div class="text-sm text-gray-500">Match Score</div>
+                  <div class="text-2xl font-bold text-blue-600">{{ "%.0f"|format(meal.health_compatibility * 100) }}%</div>
+                  <div class="text-sm text-gray-500">Health Match</div>
                 </div>
               </div>
             </div>
@@ -287,16 +299,36 @@
       </section>
       {% elif request.method == 'POST' %}
       <section>
-        <div
-          class="bg-blue-50 p-6 rounded-lg border border-blue-200 text-center"
-        >
-          <p class="text-lg text-blue-700">
-            No recommendations found that match your criteria. Please try
-            different preferences.
+        <div class="bg-yellow-50 p-8 rounded-lg border border-yellow-200 text-center">
+          <span class="text-6xl mb-4 block">🤔</span>
+          <h3 class="text-xl font-semibold text-yellow-800 mb-2">No recommendations found</h3>
+          <p class="text-yellow-700">
+            We couldn't find any meals that match your specific criteria. Please try adjusting your preferences and filters.
           </p>
         </div>
       </section>
       {% endif %}
     </div>
+
+    <!-- Add some custom CSS for better styling -->
+    <style>
+      .transition-all {
+        transition: all 0.3s ease;
+      }
+      
+      .hover\:shadow-xl:hover {
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      }
+      
+      input[type="number"]::-webkit-outer-spin-button,
+      input[type="number"]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+      
+      input[type="number"] {
+        -moz-appearance: textfield;
+      }
+    </style>
   </body>
 </html>
